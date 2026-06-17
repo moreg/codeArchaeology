@@ -2,15 +2,11 @@
 # https://git-cliff.org/
 
 [changelog]
-# Changelog header
 header = """
 # Changelog
 
-Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-version numbers follow [Semantic Versioning](https://semver.org/).
-
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 """
-# Per-version template (Tera)
 body = """
 {% if version -%}
 ## [{{ version }}] - {{ timestamp | date_format("%Y-%m-%d") }}
@@ -41,7 +37,6 @@ tag_pattern = "^[0-9]+\\.[0-9]+\\.[0-9]+$"
 skip_tags = "v0.0.0"
 top_level = "."
 
-# commit_parsers is an inline table array under [git]
 commit_parsers = [
   { message = "^feat", group = "Features" },
   { message = "^fix", group = "Bug Fixes" },
@@ -54,13 +49,12 @@ commit_parsers = [
   { message = "^style", group = "Style" },
   { message = "^revert", group = "Reverts" },
   { message = "^build", group = "Build" },
-  # Skip dependabot noise
   { message = "^deps", skip = true },
-  # Default bucket
   { message = ".*", group = "Other" },
 ]
 
-# link_parsers uses array-of-tables ([[...]]) syntax
+# Use TOML literal string (single quotes) for pattern to avoid
+# repetition-operator escape issues with {7,40}.
 [[git.link_parsers]]
-pattern = "([0-9a-f]{{7,40}})"
-href = "https://github.com/moreg/codeArchaeology/commit/{{1}}"
+pattern = 'commit/([0-9a-f]{7,40})'
+href = 'https://github.com/moreg/codeArchaeology/commit/'
