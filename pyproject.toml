@@ -52,3 +52,57 @@ combine-as-imports = true
 quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
+
+# ============================================
+# pytest + coverage
+# ============================================
+
+[tool.pytest.ini_options]
+# 让 pytest 把 backend/ 当作根路径
+testpaths = ["backend/tests"]
+addopts = [
+    "-ra",                 # 失败时打印所有 summary 行
+    "--strict-markers",    # 拼错的 marker 立刻报错
+    "--strict-config",     # 配置错误立刻报错
+    "--tb=short",          # 失败 traceback 短格式
+]
+# 这些 marker 在测试文件里用 @pytest.mark.slow 之类标注
+markers = [
+    "slow: 需要网络/真实 git 仓库的慢测试",
+    "integration: 跨模块集成测试",
+]
+
+[tool.coverage.run]
+# 测 backend/app/ 下的代码（排除 tests 自身）
+source = ["backend/app"]
+branch = true            # 分支覆盖
+data_file = "backend/.coverage"
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "*/data/*",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+# 低于此值则 CI 失败。
+# 当前 core/ 平均 ~70%（scoring 90 / scanner 90 / parser 79 / call_graph 71）；
+# API/模型层 0%（等待 PR 增加 e2e/integration 测试）。
+# 设 30 是为了让 gate 真实生效，而不是名存实亡。
+# 新增 PR 应保持或抬高此值。
+fail_under = 30
+# 排除行：纯定义、抽象方法、debug、NotImplementedError
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "pass",
+]
+# 显示缺失覆盖的行数
+show_missing = true
+skip_covered = false
+# 排序：哪几个文件覆盖最差排前
+sort = "Cover"
+

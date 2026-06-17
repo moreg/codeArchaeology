@@ -32,10 +32,24 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install -r requirements.txt
 
-      - name: Run pytest
+      - name: Run pytest with coverage
         working-directory: backend
         run: |
-          python -m pytest tests/ -v --tb=short --color=yes
+          python -m pytest tests/ -v --tb=short --color=yes \
+            --cov=app \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov \
+            --cov-report=term-missing
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            backend/coverage.xml
+            backend/htmlcov/
+          retention-days: 14
 
   frontend:
     name: Frontend (typecheck + build)
