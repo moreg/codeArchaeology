@@ -2,6 +2,14 @@
 
 > 让每一座"代码屎山"都能被快速理解、安全重构
 
+[![CI](https://github.com/moreg/codeArchaeology/actions/workflows/ci.yml/badge.svg)](https://github.com/moreg/codeArchaeology/actions/workflows/ci.yml)
+[![Pages](https://github.com/moreg/codeArchaeology/actions/workflows/pages.yml/badge.svg)](https://github.com/moreg/codeArchaeology/actions/workflows/pages.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Code style: ruff + prettier](https://img.shields.io/badge/code%20style-ruff%20%2B%20prettier-000000.svg)](#development)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-fe5196.svg)](https://www.conventionalcommits.org/)
+
+[English](#code-archaeology-codearchaeology) | 中文
+
 **代码考古学** 是一款智能化的老旧代码理解与重构工具。它通过：
 
 - **调用关系宇宙图** —— 把整个项目变成一张可缩放、可交互的星系图
