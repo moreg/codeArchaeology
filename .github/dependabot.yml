@@ -1,0 +1,120 @@
+# Dependabot configuration
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+version: 2
+
+# 通用配置
+updates:
+  # ============================================
+  # 关闭全局回退到 GitHub
+  # ============================================
+  # 单独启用每个生态
+
+  # ------------------------------------------------------------
+  # Python (backend)
+  # ------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Asia/Shanghai"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps(dev)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "backend"
+    open-pull-requests-limit: 5
+    # tree-sitter-* 在 0.21.x ↔ 0.23.x 跨大版本时 API 不兼容，
+    # 自动合并可能导致 CI 失败；分组让同一 PR 处理多个小版本
+    groups:
+      tree-sitter:
+        patterns:
+          - "tree-sitter*"
+      testing:
+        patterns:
+          - "pytest"
+          - "pytest-*"
+          - "coverage"
+      fastapi-stack:
+        patterns:
+          - "fastapi"
+          - "uvicorn"
+          - "pydantic"
+          - "starlette"
+    # 忽略会破坏兼容的大版本升级
+    ignore:
+      - dependency-name: "tree-sitter*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pydantic"
+        update-types: ["version-update:semver-major"]
+
+  # ------------------------------------------------------------
+  # npm (frontend)
+  # ------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Asia/Shanghai"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps(dev)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "frontend"
+    open-pull-requests-limit: 5
+    # React 18 → 19 / Vite 5 → 6 / Cytoscape 大版本升级可能破坏 API
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "cytoscape"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "cytoscape-cose-bilkent"
+        update-types: ["version-update:semver-major"]
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      cytoscape:
+        patterns:
+          - "cytoscape*"
+      vite-ecosystem:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+      types:
+        patterns:
+          - "@types/*"
+
+  # ------------------------------------------------------------
+  # GitHub Actions
+  # ------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Asia/Shanghai"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "ci"
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns:
+          - "actions/*"
+          - "*/*-action*"
