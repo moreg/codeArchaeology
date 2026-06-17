@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+.installed.cfg
+*.egg
+
+# Virtualenv
+.venv/
+venv/
+env/
+
+# 测试/缓存
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+
+# 数据/日志
+data/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+logs/
+
+# Node
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.bak
+*.orig

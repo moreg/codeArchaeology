@@ -1,0 +1,80 @@
+.section {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-3);
+}
+
+.chartWrap {
+  width: 100%;
+  height: 260px;
+  position: relative;
+  margin-bottom: var(--space-4);
+}
+
+.dimList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dimItem {
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
+}
+
+.dimLabel {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.dimBarWrap {
+  height: 8px;
+  background: var(--bg-deep);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  grid-column: 2;
+}
+
+.dimBar {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--gold-dim) 0%,
+    var(--gold) 50%,
+    var(--gold-bright) 100%
+  );
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--easing-out);
+  box-shadow: 0 0 6px var(--gold-glow);
+}
+
+.dimValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.dimValue strong {
+  font-size: var(--text-xl);
+  color: var(--gold);
+  font-weight: 700;
+}

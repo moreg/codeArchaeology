@@ -1,0 +1,105 @@
+.tooltip {
+  position: absolute;
+  z-index: var(--z-tooltip);
+  background: var(--bg-card);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md), var(--shadow-gold);
+  padding: var(--space-3) var(--space-4);
+  min-width: 220px;
+  max-width: 320px;
+  pointer-events: none;
+  font-size: 12px;
+  color: var(--parchment);
+  animation: tooltipIn 150ms ease-out;
+}
+
+@keyframes tooltipIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.name {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: var(--space-1);
+  word-break: break-all;
+}
+
+.path {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+  word-break: break-all;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.label {
+  color: var(--text-muted);
+}
+
+.value {
+  color: var(--parchment);
+  font-family: var(--font-mono);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.chip.healthy {
+  background: rgba(76, 175, 80, 0.18);
+  color: var(--complexity-healthy);
+}
+
+.chip.warning {
+  background: rgba(255, 193, 7, 0.18);
+  color: var(--complexity-warning);
+}
+
+.chip.danger {
+  background: rgba(255, 152, 0, 0.18);
+  color: var(--complexity-danger);
+}
+
+.chip.extreme {
+  background: rgba(244, 67, 54, 0.18);
+  color: var(--complexity-extreme);
+}
+
+.coverageBar {
+  width: 60px;
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.coverageFill {
+  height: 100%;
+  background: var(--success);
+}

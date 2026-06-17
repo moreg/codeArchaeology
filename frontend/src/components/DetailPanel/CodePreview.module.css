@@ -1,0 +1,92 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 320px;
+  max-height: 480px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.langChip {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 1px var(--space-2);
+  background: var(--gold-soft);
+  color: var(--gold);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  text-transform: lowercase;
+}
+
+.infoBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-4);
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.infoPath {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.infoRange {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.editorWrap {
+  flex: 1;
+  min-height: 300px;
+  position: relative;
+  background: #060a14;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.loadingRow {
+  height: 14px;
+}
+
+.editorLoading {
+  padding: var(--space-4);
+}
+
+/* Monaco 行高亮（通过 deltaDecorations 注入，由 CSS Modules 哈希） */
+.highlightLine {
+  background: rgba(201, 169, 110, 0.08) !important;
+  border-left: 2px solid var(--gold) !important;
+}
+
+.highlightMargin {
+  background: rgba(201, 169, 110, 0.15) !important;
+}
