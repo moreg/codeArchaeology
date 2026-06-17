@@ -1,0 +1,54 @@
+# Ruff 配置 (与 .pre-commit-config.yaml 配合)
+# https://docs.astral.sh/ruff/
+
+[tool.ruff]
+# 项目根
+target-version = "py39"
+line-length = 100
+extend-exclude = [
+    "backend/data",
+    "sample-project",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+# 启用的规则集
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import 排序)
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "S",   # flake8-bandit (安全)
+    "T20", # flake8-print (禁用 print)
+    "ASYNC", # flake8-async
+    "PIE", # flake8-pie
+    "RUF", # ruff 自带规则
+]
+ignore = [
+    "E501",  # 行长（与 line-length 重复）
+    "B008",  # 函数调用中的默认参数（如 Path()）
+    "S101",  # assert 在测试中是必需的
+    "N818",  # 异常类命名（项目用 Error 结尾）
+    "E402",  # 模块级 import 不在顶部（部分插件需要 sys.path 调整）
+]
+
+[tool.ruff.lint.per-file-ignores]
+"backend/tests/**/*.py" = ["S101", "S105", "S106"]  # 测试中允许 assert / 假密码
+"sample-project/**/*.py" = ["ALL"]                    # 演示用屎山，不 lint
+"backend/llm*mock_data*.py" = ["S301", "S302"]      # mock 数据可有 pickle/marshal
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+combine-as-imports = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

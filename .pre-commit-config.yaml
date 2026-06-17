@@ -1,0 +1,72 @@
+# Pre-commit hook configuration
+# https://pre-commit.com/
+#
+# 安装: pip install pre-commit
+# 一次性设置: pre-commit install
+# 手动跑全部: pre-commit run --all-files
+# 跳过 hook: SKIP=ruff git commit -m "..."
+# 更新 hook 版本: pre-commit autoupdate
+
+repos:
+  # ============================================
+  # 通用文件检查
+  # ============================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        # .md 行尾空格用于 Markdown 换行，保留
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        # GitHub Actions workflow 里有 anchor, anchors 不能跨文件检查
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      - id: detect-private-key
+        # 防止意外提交 SSH/AWS 私钥
+      - id: no-commit-to-branch
+        args: [--branch=main, --pattern=master]
+
+  # ============================================
+  # Python: ruff (lint) + ruff-format (format)
+  # ============================================
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.5
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  # ============================================
+  # Node: prettier
+  # ============================================
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.3.3
+    hooks:
+      - id: prettier
+        types_or: [ts, tsx, js, jsx, json, css, md, yaml]
+        # 排除 lock 文件（prettier 会改格式）和前端构建产物
+        exclude: |
+          (?x)^(
+            .*package-lock\.json
+            | .*pnpm-lock\.yaml
+            | frontend/dist/.*
+            | frontend/node_modules/.*
+            | backend/data/.*
+          )$
+
+  # ============================================
+  # 提交信息格式（可选，按需开启）
+  # ============================================
+  # - repo: https://github.com/compilerla/conventional-pre-commit
+  #   rev: v3.4.0
+  #   hooks:
+  #     - id: conventional-pre-commit
+  #       stages: [commit-msg]
+  #       args: []
