@@ -1,0 +1,101 @@
+name: Bug 报告 🐛
+description: 上报一个 Bug，帮助我们复现和修复
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你上报 Bug！请提供尽量详细的信息，**安全相关问题请勿在此提**，走 [Security Advisories](https://github.com/moreg/codeArchaeology/security/advisories/new) 渠道。
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 严重程度
+      description: 这个 Bug 影响程度有多大？
+      options:
+        - 🔴 阻断（核心功能完全不可用）
+        - 🟠 高（有明显错误，影响日常使用）
+        - 🟡 中（有 workaround，但仍是个问题）
+        - 🟢 低（UI 错位、文案、边角问题）
+      validations:
+        required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: 出错位置
+      description: Bug 出现在哪个模块？
+      options:
+        - backend/api (REST / WebSocket)
+        - backend/core/scanner
+        - backend/core/parser
+        - backend/core/call_graph
+        - backend/core/scoring
+        - backend/core/git_analyzer
+        - backend/core/llm_adapter
+        - backend/models (SQLAlchemy)
+        - frontend/components/UniverseMap
+        - frontend/components/DetailPanel
+        - frontend/store (Zustand)
+        - frontend/api (client)
+        - build / CI
+        - docs
+        - 不确定
+      validations:
+        required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: 环境信息
+      description: 操作系统、Python、Node、浏览器、相关版本
+      placeholder: |
+        OS: Windows 11 / macOS 14 / Ubuntu 22.04
+        Python: 3.12.3
+        Node: 20.10.0
+        浏览器: Chrome 120
+        部署: docker compose / npm run dev / uvicorn
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 一步步列出复现这个 Bug 的操作
+      placeholder: |
+        1. 启动后端 `uvicorn app.main:app --port 8000`
+        2. 启动前端 `npm run dev`
+        3. 点击"加载示例项目"
+        4. 等待扫描完成
+        5. 切换颜色模式到 "作者分布"
+        6. ❌ 报错
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+      description: 你期望发生什么？
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 实际发生了什么？贴上错误日志、截图、录屏等
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 补充信息（可选）
+      description: 其他可能有帮助的信息：可能是哪个 commit 引入的、本地复现命令等
+    validations:
+      required: false

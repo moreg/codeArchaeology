@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 一般讨论
+    url: https://github.com/moreg/codeArchaeology/discussions
+    about: 用于提问、想法交流、非 Bug/Feature 的对话
+  - name: 🔒 安全漏洞
+    url: https://github.com/moreg/codeArchaeology/security/advisories/new
+    about: 私下报告安全问题（请勿在公开 Issue 讨论）
+  - name: 📖 贡献指南
+    url: https://github.com/moreg/codeArchaeology/blob/main/CONTRIBUTING.md
+    about: 阅读 CONTRIBUTING.md 了解开发流程
+  - name: 📜 行为准则
+    url: https://github.com/moreg/codeArchaeology/blob/main/CODE_OF_CONDUCT.md
+    about: 社区行为准则
