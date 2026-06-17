@@ -1,0 +1,151 @@
+# Release workflow
+# 触发: git tag v*.*.* 推送后 (e.g. v0.1.0, v1.2.3)
+#
+# 行为:
+# 1. 运行完整 CI (pytest + typecheck + build) -- 失败则不出 release
+# 2. 用 git-cliff 从 Conventional Commits 自动生成 CHANGELOG.md
+# 3. 创建一个带 changelog + 安装包的 GitHub Release
+#
+# 用法:
+#   git tag -a v0.1.0 -m "v0.1.0: MVP"
+#   git push origin v0.1.0
+#
+# 前置要求:
+# - 所有 commit 遵循 Conventional Commits
+# - main 分支的 CI 必须已通过
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (e.g. v0.1.0)"
+        required: true
+        default: ""
+
+permissions:
+  contents: write   # 创建 release
+
+jobs:
+  quality-gate:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # 复用 CI workflow 的步骤 (Run backend tests + frontend build)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y git
+
+      - name: Install Python deps
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install -r requirements.txt
+
+      - name: Run pytest
+        working-directory: backend
+        run: python -m pytest tests/ -v --tb=short
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frontend install
+        working-directory: frontend
+        run: npm ci || npm install
+
+      - name: Frontend typecheck
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Frontend build
+        working-directory: frontend
+        run: npm run build
+
+  release:
+    name: Build release artifacts
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # git-cliff 需要完整历史
+
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="${{ inputs.tag }}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved tag: $TAG"
+
+      - name: Generate changelog with git-cliff
+        uses: orhun/git-cliff-action@v4
+        id: cliff
+        with:
+          tag: ${{ steps.tag.outputs.tag }}
+          config: cliff.toml
+          args: --strip all
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build frontend bundle
+        working-directory: frontend
+        env:
+          GITHUB_PAGES: "true"
+          GITHUB_PAGES_BASE: "/"
+        run: |
+          npm ci || npm install
+          npm run build
+          cd dist
+          # SPA 404 fallback
+          cp index.html 404.html
+          # 打包成 zip 上传到 release
+          zip -r ../../codearchaeology-frontend-${{ steps.tag.outputs.tag }}.zip .
+
+      - name: Build backend wheel
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade build
+          python -m build --wheel --outdir ../dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: ${{ steps.tag.outputs.tag }}
+          body: ${{ steps.cliff.outputs.content }}
+          draft: false
+          prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
+          files: |
+            codearchaeology-frontend-${{ steps.tag.outputs.tag }}.zip
+            dist/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit CHANGELOG.md back to main
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs(changelog): update for ${{ steps.tag.outputs.tag }}"
+          file_pattern: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
