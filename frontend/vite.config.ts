@@ -6,6 +6,11 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  // 默认根路径部署；GitHub Pages 通过环境变量 GITHUB_PAGES=true 切到子路径
+  // 设置 GITHUB_PAGES_BASE 可自定义仓库名（默认 /codeArchaeology/）
+  base: process.env.GITHUB_PAGES
+    ? (process.env.GITHUB_PAGES_BASE || '/codeArchaeology/')
+    : '/',
   plugins: [react()],
   resolve: {
     alias: {
