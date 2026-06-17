@@ -35,16 +35,13 @@ trim = true
 postprocessors = []
 
 [git]
-# Parse commits as conventional commits
 conventional_commits = true
 filter_unconventional = false
 tag_pattern = "^[0-9]+\\.[0-9]+\\.[0-9]+$"
 skip_tags = "v0.0.0"
 top_level = "."
 
-# git-cliff commit_parsers official syntax:
-# inline table array assigned to commit_parsers inside [git] section
-# (NOT [[git.commit_parsers]] array of tables)
+# commit_parsers is an inline table array under [git]
 commit_parsers = [
   { message = "^feat", group = "Features" },
   { message = "^fix", group = "Bug Fixes" },
@@ -63,6 +60,7 @@ commit_parsers = [
   { message = ".*", group = "Other" },
 ]
 
-[git.link_parsers]
-# Link commit ids to GitHub
-sha = "https://github.com/moreg/codeArchaeology/commit/{{sha}}"
+# link_parsers uses array-of-tables ([[...]]) syntax
+[[git.link_parsers]]
+pattern = "([0-9a-f]{{7,40}})"
+href = "https://github.com/moreg/codeArchaeology/commit/{{1}}"
