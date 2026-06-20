@@ -42,7 +42,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'cytoscape-vendor': ['cytoscape', 'cytoscape-cose-bilkent', 'cytoscape-edgehandles'],
+          'cytoscape-vendor': ['cytoscape', 'cytoscape-cose-bilkent'],
           'monaco-vendor': ['monaco-editor', '@monaco-editor/react'],
           'chart-vendor': ['chart.js', 'react-chartjs-2'],
           'react-vendor': ['react', 'react-dom'],
