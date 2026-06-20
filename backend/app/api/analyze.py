@@ -6,8 +6,10 @@ app.api.analyze — LLM 分析路由
 import os
 import uuid
 from typing import Optional, Dict, Any
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from ..utils.logger import get_logger
 from ..core.llm_adapter import get_adapter
@@ -21,6 +23,7 @@ from ..models.analysis_result import AnalysisResult
 log = get_logger("api.analyze")
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 class AnalyzeRequest(BaseModel):
@@ -90,7 +93,8 @@ def _build_story_context(scan_id: str, node_id: str) -> Dict[str, Any]:
 
 
 @router.post("/analyze/story")
-async def analyze_story(req: AnalyzeRequest):
+@limiter.limit("10/minute")
+async def analyze_story(request: Request, req: AnalyzeRequest):
     """生成函数故事"""
     try:
         ctx = _build_story_context(req.scan_id, req.node_id)
@@ -126,7 +130,8 @@ async def analyze_story(req: AnalyzeRequest):
 
 
 @router.post("/analyze/refactor")
-async def analyze_refactor(req: AnalyzeRequest):
+@limiter.limit("10/minute")
+async def analyze_refactor(request: Request, req: AnalyzeRequest):
     """生成重构建议"""
     try:
         ctx = _build_story_context(req.scan_id, req.node_id)
