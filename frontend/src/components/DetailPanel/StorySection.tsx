@@ -1,4 +1,5 @@
 import { memo, useEffect, useRef, useState } from 'react';
+import DOMPurify from 'dompurify';
 import type { GraphNode, StoryData } from '@/types';
 import { apiClient } from '@/api/client';
 import { useAppStore } from '@/store/useAppStore';
@@ -35,12 +36,14 @@ function StorySkeleton() {
 }
 
 function NarrativeHtml({ html }: { html: string }) {
-  // narrative 是受信任的后端字符串，使用 dangerouslySetInnerHTML
-  // 高亮样式 .hl/.danger/.code 已在 StorySection.module.css 中定义
+  const sanitized = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['code', 'span', 'strong', 'em', 'b', 'i', 'br', 'p'],
+    ALLOWED_ATTR: ['class'],
+  });
   return (
     <div
       className={styles.narrative}
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: sanitized }}
     />
   );
 }
