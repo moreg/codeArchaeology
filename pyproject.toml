@@ -106,3 +106,19 @@ skip_covered = false
 # 排序：哪几个文件覆盖最差排前
 sort = "Cover"
 
+# ============================================
+# mypy 类型检查
+# ============================================
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+check_untyped_defs = true
+ignore_missing_imports = true
+exclude = [
+    "backend/tests/",
+    "sample-project/",
+]
+
