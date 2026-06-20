@@ -57,17 +57,25 @@ function complexityColor(cc: number): string {
   return lerpColor(C_ORANGE, C_RED, clamp((cc - 20) / 15, 0, 1));
 }
 
-function frequencyColor(lastModified: string, allNodes: GraphNode[]): string {
-  if (!allNodes.length) return '#3B82F6';
-  const ts = allNodes.map((n) => new Date(n.last_modified || '').getTime());
-  const minT = Math.min(...ts);
-  const maxT = Math.max(...ts);
+function frequencyColor(lastModified: string, minT: number, maxT: number): string {
   const t = new Date(lastModified).getTime();
   if (maxT === minT) return '#3B82F6';
   const ratio = (t - minT) / (maxT - minT);
   if (ratio > 0.66) return '#3B82F6';
   if (ratio > 0.33) return '#1D4ED8';
   return '#1E3A8A';
+}
+
+export function computeTimeRange(nodes: GraphNode[]): { minT: number; maxT: number } {
+  if (!nodes.length) return { minT: 0, maxT: 0 };
+  let minT = Infinity;
+  let maxT = -Infinity;
+  for (const n of nodes) {
+    const t = new Date(n.last_modified || '').getTime();
+    if (t < minT) minT = t;
+    if (t > maxT) maxT = t;
+  }
+  return { minT, maxT };
 }
 
 function testCoverageColor(coverage: number): string {
@@ -77,13 +85,17 @@ function testCoverageColor(coverage: number): string {
 export function getNodeColor(
   node: GraphNode,
   mode: ColorMode,
-  allNodes: GraphNode[] = [],
+  timeRange?: { minT: number; maxT: number },
 ): string {
   switch (mode) {
     case 'complexity':
       return complexityColor(node.complexity);
     case 'frequency':
-      return frequencyColor(node.last_modified || '', allNodes);
+      return frequencyColor(
+        node.last_modified || '',
+        timeRange?.minT ?? 0,
+        timeRange?.maxT ?? 0,
+      );
     case 'author':
       return getAuthorColor(node.author || '');
     case 'test_coverage':

@@ -2,7 +2,7 @@ import { useEffect, useRef, type MutableRefObject } from 'react';
 import cytoscape, { type Core, type ElementDefinition, type LayoutOptions } from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
 import type { ColorMode, GraphData, GraphNode } from '@/types';
-import { getNodeColor, getNodeShape, getNodeSize } from '@/utils/colorMode';
+import { getNodeColor, getNodeShape, getNodeSize, computeTimeRange } from '@/utils/colorMode';
 
 let registered = false;
 function registerExtensions(): void {
@@ -196,13 +196,14 @@ export function useCytoscape(options: UseCytoscapeOptions): MutableRefObject<HTM
     const cy = cyRef.current;
     if (!cy || !options.data) return;
     const { nodes } = options.data;
+    const timeRange = computeTimeRange(nodes);
     const baseStyle = [
       {
         selector: 'node',
         style: {
           'background-color': (ele: cytoscape.NodeSingular): string => {
             const data = ele.data() as GraphNode;
-            return getNodeColor(data, options.colorMode, nodes);
+            return getNodeColor(data, options.colorMode, timeRange);
           },
           width: (ele: cytoscape.NodeSingular): number => {
             const data = ele.data() as GraphNode;

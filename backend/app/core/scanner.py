@@ -105,36 +105,40 @@ class Scanner:
             return lang
         return None
 
-    def _count_lines(self, path: str) -> int:
+    def _read_file_info(self, path: str) -> Optional[FileInfo]:
+        """一次读取获取 size 和 lines"""
         try:
             with open(path, "rb") as f:
-                return sum(1 for _ in f)
+                content = f.read()
+            size = len(content)
+            if size > self.max_file_size:
+                self._stats["skipped"] += 1
+                return None
+            lines = content.count(b"\n") + (1 if content and not content.endswith(b"\n") else 0)
+            ext = os.path.splitext(path)[1]
+            lang = self._get_language(ext)
+            if not lang:
+                return None
+            fi = FileInfo(path, lang, size)
+            fi.lines = lines
+            return fi
         except Exception:
-            return 0
+            return None
 
     def walk(self) -> Generator[FileInfo, None, None]:
         """递归遍历, yield FileInfo"""
         if not os.path.exists(self.root_path):
             return
         for root, dirs, files in os.walk(self.root_path):
-            # 过滤掉要跳过的目录
             dirs[:] = [d for d in dirs if not self._should_skip_dir(d)]
             for filename in files:
                 full_path = os.path.join(root, filename)
                 ext = os.path.splitext(filename)[1]
-                lang = self._get_language(ext)
-                if not lang:
+                if not self._get_language(ext):
                     continue
-                try:
-                    size = os.path.getsize(full_path)
-                except OSError:
-                    continue
-                if size > self.max_file_size:
-                    self._stats["skipped"] += 1
-                    continue
-                fi = FileInfo(full_path, lang, size)
-                fi.lines = self._count_lines(full_path)
-                yield fi
+                fi = self._read_file_info(full_path)
+                if fi:
+                    yield fi
 
     def scan(self) -> List[FileInfo]:
         """执行扫描"""
