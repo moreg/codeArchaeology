@@ -6,12 +6,14 @@ app.core.llm_adapter — LLM 适配器
 """
 import json
 import re
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 from abc import ABC, abstractmethod
 
 from ..config import settings
 from ..utils.logger import get_logger
 from .mock_data import get_mock_story, get_mock_refactor
+from .prompts import STORY_PROMPT, REFACTOR_PROMPT
 
 log = get_logger("core.llm_adapter")
 
@@ -20,13 +22,8 @@ class LLMAdapter(ABC):
     """LLM 适配器抽象类"""
 
     @abstractmethod
-    def generate_story(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """生成函数故事"""
-        pass
-
-    @abstractmethod
-    def generate_refactor(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """生成重构建议"""
+    def _call(self, prompt: str) -> Optional[Dict[str, Any]]:
+        """调用 LLM 后端，返回解析后的 JSON 或 None"""
         pass
 
     @property
@@ -34,6 +31,61 @@ class LLMAdapter(ABC):
     def model_name(self) -> str:
         """返回模型名"""
         pass
+
+    def _build_story_prompt(self, context: Dict[str, Any]) -> str:
+        """构建故事 prompt"""
+        return STORY_PROMPT.format(
+            function_name=context.get("function_name", ""),
+            file_path=context.get("file_path", ""),
+            start_line=context.get("start_line", 0),
+            end_line=context.get("end_line", 0),
+            line_count=context.get("line_count", 0),
+            complexity=context.get("complexity", 1),
+            class_name=context.get("class_name", ""),
+            code=context.get("code", ""),
+            blame=context.get("blame", ""),
+            timeline=context.get("timeline", ""),
+            callers=context.get("callers", ""),
+            callees=context.get("callees", ""),
+        )
+
+    def _build_refactor_prompt(self, context: Dict[str, Any]) -> str:
+        """构建重构建议 prompt"""
+        return REFACTOR_PROMPT.format(
+            function_name=context.get("function_name", ""),
+            file_path=context.get("file_path", ""),
+            start_line=context.get("start_line", 0),
+            end_line=context.get("end_line", 0),
+            line_count=context.get("line_count", 0),
+            complexity=context.get("complexity", 1),
+            cc_rating=context.get("cc_rating", ""),
+            code=context.get("code", ""),
+            callers=context.get("callers", ""),
+            callees=context.get("callees", ""),
+            siblings=context.get("siblings", ""),
+        )
+
+    def generate_story(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """生成函数故事（模板方法）"""
+        prompt = self._build_story_prompt(context)
+        result = self._call(prompt)
+        if not result:
+            log.warning("%s 调用失败, 降级到 Mock", self.__class__.__name__)
+            return get_mock_story(context.get("function_name", ""), context.get("file_path", ""))
+        result["node_id"] = context.get("node_id", "")
+        result["model"] = self.model_name
+        result["generated_at"] = datetime.now(timezone.utc).isoformat()
+        return result
+
+    def generate_refactor(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """生成重构建议（模板方法）"""
+        prompt = self._build_refactor_prompt(context)
+        result = self._call(prompt)
+        if not result:
+            log.warning("%s 调用失败, 降级到 Mock", self.__class__.__name__)
+            return get_mock_refactor(context.get("function_name", ""), context.get("file_path", ""))
+        result["node_id"] = context.get("node_id", "")
+        return result
 
     def _extract_json(self, text: str) -> Optional[Dict[str, Any]]:
         """从 LLM 输出中提取 JSON"""
@@ -67,6 +119,10 @@ class MockAdapter(LLMAdapter):
     @property
     def model_name(self) -> str:
         return "mock"
+
+    def _call(self, prompt: str) -> Optional[Dict[str, Any]]:
+        """Mock 适配器不调用 _call，直接覆盖 generate 方法"""
+        return None
 
     def generate_story(self, context: Dict[str, Any]) -> Dict[str, Any]:
         log.info("MockAdapter.generate_story: %s", context.get("function_name"))
@@ -129,54 +185,6 @@ class OpenAIAdapter(LLMAdapter):
             log.error("OpenAI 调用失败: %s", e)
             return None
 
-    def generate_story(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        from .prompts import STORY_PROMPT
-        prompt = STORY_PROMPT.format(
-            function_name=context.get("function_name", ""),
-            file_path=context.get("file_path", ""),
-            start_line=context.get("start_line", 0),
-            end_line=context.get("end_line", 0),
-            line_count=context.get("line_count", 0),
-            complexity=context.get("complexity", 1),
-            class_name=context.get("class_name", ""),
-            code=context.get("code", ""),
-            blame=context.get("blame", ""),
-            timeline=context.get("timeline", ""),
-            callers=context.get("callers", ""),
-            callees=context.get("callees", ""),
-        )
-        result = self._call(prompt)
-        if not result:
-            log.warning("OpenAI 调用失败, 降级到 Mock")
-            return get_mock_story(context.get("function_name", ""), context.get("file_path", ""))
-        result["node_id"] = context.get("node_id", "")
-        result["model"] = self.model_name
-        from datetime import datetime, timezone
-        result["generated_at"] = datetime.now(timezone.utc).isoformat()
-        return result
-
-    def generate_refactor(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        from .prompts import REFACTOR_PROMPT
-        prompt = REFACTOR_PROMPT.format(
-            function_name=context.get("function_name", ""),
-            file_path=context.get("file_path", ""),
-            start_line=context.get("start_line", 0),
-            end_line=context.get("end_line", 0),
-            line_count=context.get("line_count", 0),
-            complexity=context.get("complexity", 1),
-            cc_rating=context.get("cc_rating", ""),
-            code=context.get("code", ""),
-            callers=context.get("callers", ""),
-            callees=context.get("callees", ""),
-            siblings=context.get("siblings", ""),
-        )
-        result = self._call(prompt)
-        if not result:
-            log.warning("OpenAI 调用失败, 降级到 Mock")
-            return get_mock_refactor(context.get("function_name", ""), context.get("file_path", ""))
-        result["node_id"] = context.get("node_id", "")
-        return result
-
 
 class OllamaAdapter(LLMAdapter):
     """Ollama 适配器, 用 HTTP POST"""
@@ -209,54 +217,6 @@ class OllamaAdapter(LLMAdapter):
         except Exception as e:
             log.error("Ollama 调用失败: %s", e)
             return None
-
-    def generate_story(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        from .prompts import STORY_PROMPT
-        prompt = STORY_PROMPT.format(
-            function_name=context.get("function_name", ""),
-            file_path=context.get("file_path", ""),
-            start_line=context.get("start_line", 0),
-            end_line=context.get("end_line", 0),
-            line_count=context.get("line_count", 0),
-            complexity=context.get("complexity", 1),
-            class_name=context.get("class_name", ""),
-            code=context.get("code", ""),
-            blame=context.get("blame", ""),
-            timeline=context.get("timeline", ""),
-            callers=context.get("callers", ""),
-            callees=context.get("callees", ""),
-        )
-        result = self._call(prompt)
-        if not result:
-            log.warning("Ollama 调用失败, 降级到 Mock")
-            return get_mock_story(context.get("function_name", ""), context.get("file_path", ""))
-        result["node_id"] = context.get("node_id", "")
-        result["model"] = self.model_name
-        from datetime import datetime, timezone
-        result["generated_at"] = datetime.now(timezone.utc).isoformat()
-        return result
-
-    def generate_refactor(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        from .prompts import REFACTOR_PROMPT
-        prompt = REFACTOR_PROMPT.format(
-            function_name=context.get("function_name", ""),
-            file_path=context.get("file_path", ""),
-            start_line=context.get("start_line", 0),
-            end_line=context.get("end_line", 0),
-            line_count=context.get("line_count", 0),
-            complexity=context.get("complexity", 1),
-            cc_rating=context.get("cc_rating", ""),
-            code=context.get("code", ""),
-            callers=context.get("callers", ""),
-            callees=context.get("callees", ""),
-            siblings=context.get("siblings", ""),
-        )
-        result = self._call(prompt)
-        if not result:
-            log.warning("Ollama 调用失败, 降级到 Mock")
-            return get_mock_refactor(context.get("function_name", ""), context.get("file_path", ""))
-        result["node_id"] = context.get("node_id", "")
-        return result
 
 
 def get_adapter(mode: Optional[str] = None) -> LLMAdapter:
