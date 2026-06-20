@@ -102,6 +102,14 @@ class ProgressManager:
             "project_name": info.get("project_name", ""),
         }
 
+    def is_scan_error(self, scan_id: str) -> bool:
+        """检查扫描是否出错"""
+        return self._scan_info.get(scan_id, {}).get("status") == "error"
+
+    def get_scan_info(self, scan_id: str) -> Dict[str, Any]:
+        """获取扫描信息（内部使用）"""
+        return self._scan_info.get(scan_id, {})
+
     async def subscribe(self, scan_id: str) -> asyncio.Queue:
         q: asyncio.Queue = asyncio.Queue(maxsize=100)
         async with self._lock:

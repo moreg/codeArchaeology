@@ -118,7 +118,7 @@ async def _parse_files(scan_id: str, files: list, project_path: str) -> Dict[str
     test_files: List[str] = []
     total = len(files)
     for i, fi in enumerate(files, 1):
-        if progress_manager._scan_info.get(scan_id, {}).get("status") == "error":
+        if progress_manager.is_scan_error(scan_id):
             break
         rel = os.path.relpath(fi.path, project_path)
         await progress_manager.update_progress(scan_id, i, total, current_file=rel)
@@ -320,7 +320,7 @@ async def _do_scan(scan_id: str, project_path: str, languages: Optional[List[str
                 project.finished_at = datetime.now(timezone.utc)
 
         duration = 0.0
-        info = progress_manager._scan_info.get(scan_id, {})
+        info = progress_manager.get_scan_info(scan_id)
         if "started_at" in info:
             import time
             duration = time.time() - info["started_at"]
