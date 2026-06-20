@@ -47,3 +47,7 @@ Thumbs.db
 *.tmp
 *.bak
 *.orig
+
+# 调试/临时脚本
+*.ps1
+commit_msg.txt
