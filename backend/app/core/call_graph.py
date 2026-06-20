@@ -19,6 +19,7 @@ class CallGraphBuilder:
         self.graph = nx.DiGraph()
         self._imports: Dict[str, Dict[str, str]] = {}  # file -> {alias: module}
         self._function_index: Dict[str, Dict] = {}  # id -> function dict
+        self._name_index: Dict[str, List[str]] = {}  # name -> [fid1, fid2, ...]
 
     def add_function(self, func: Dict[str, Any]):
         """添加一个函数节点"""
@@ -27,6 +28,12 @@ class CallGraphBuilder:
             return
         self.graph.add_node(fid, **func)
         self._function_index[fid] = func
+        # 维护名称倒排索引
+        name = func.get("name")
+        if name:
+            if name not in self._name_index:
+                self._name_index[name] = []
+            self._name_index[name].append(fid)
 
     def add_class(self, cls: Dict[str, Any]):
         """添加类节点"""
@@ -57,9 +64,11 @@ class CallGraphBuilder:
         """根据 import 解析调用, 返回被调用函数的 id"""
         if not call_name:
             return None
-        # 直接匹配 (同名函数)
-        for fid, func in self._function_index.items():
-            if func.get("name") == call_name and func.get("file_path") != caller_file:
+        # 直接匹配 (同名函数) - 使用倒排索引 O(1)
+        fids = self._name_index.get(call_name, [])
+        for fid in fids:
+            func = self._function_index[fid]
+            if func.get("file_path") != caller_file:
                 return fid
         # 简化处理: 通过 module 映射
         imports = self._imports.get(caller_file, {})
@@ -69,10 +78,10 @@ class CallGraphBuilder:
             module_alias = parts[0]
             func_name = parts[-1]
             if module_alias in imports:
-                # 找到对应文件中的函数
-                for fid, func in self._function_index.items():
-                    if func.get("name") == func_name:
-                        return fid
+                # 使用倒排索引查找
+                fids = self._name_index.get(func_name, [])
+                if fids:
+                    return fids[0]
         return None
 
     def build_edges_from_functions(self, functions: List[Dict[str, Any]]):
